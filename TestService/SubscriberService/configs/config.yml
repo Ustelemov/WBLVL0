@@ -1,0 +1,10 @@
+port: "8000"
+nats_url: "wbx-world-nats-stage.dp.wb.ru, wbx-world-nats-stage.dl.wb.ru"
+nats_subject: "go.test"
+
+db: 
+  host: "develop.wbx-world.vm.prod-3d.cloud.3data"
+  port: "5432"
+  dbname:   "Orders_test"
+  username: "ustelemov_maksim"
+  sslmode:  "disable"
