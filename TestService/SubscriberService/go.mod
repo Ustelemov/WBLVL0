@@ -3,14 +3,23 @@ module github.com/ustelemov/WBLVL0/TestService
 go 1.17
 
 require (
-	github.com/brianvoe/gofakeit v3.18.0+incompatible
+	github.com/golang/mock v1.6.0
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.4
 	github.com/sirupsen/logrus v1.8.1
+	github.com/stretchr/testify v1.7.0
+	github.com/zhashkevych/go-sqlxmock v1.5.1
+)
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/gin-contrib/cors v1.3.1 // direct
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
@@ -42,7 +51,6 @@ require (
 )
 
 require (
-	github.com/brianvoe/gofakeit/v6 v6.9.0
 	github.com/gin-gonic/gin v1.7.4
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/nats-io/nats.go v1.13.1-0.20211018182449-f2416a8b1483

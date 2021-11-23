@@ -47,6 +47,6 @@ type OrderOut struct {
 }
 
 type OrderJSON struct {
-	OrderUID string `db:"uuid"`
-	JSON     []byte `db:"order_data"`
+	OrderUID string `json:"uuid" db:"uuid"`
+	JSON     []byte `json:"order_data" db:"order_data"`
 }

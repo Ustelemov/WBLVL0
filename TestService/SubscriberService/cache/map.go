@@ -18,33 +18,32 @@ func (cache *MapRepositoryCache) ChangeMapRepositoryCache(maps map[string]*schem
 	cache.maps = maps
 }
 
-func (cache *MapRepositoryCache) GetOrderByUUID(uuid string) (*schema.Order, error) {
+func (cache *MapRepositoryCache) GetOrderByUUID(uuid string) *schema.Order {
 	v, ok := cache.maps[uuid]
 
 	if !ok {
-		return nil, fmt.Errorf("no uuid: %s found in cache", uuid)
+		return nil
 	}
 
-	return v, nil
+	return v
 }
 
-func (cache *MapRepositoryCache) SaveOrderInCache(ord *schema.Order) error {
+func (cache *MapRepositoryCache) SaveOrder(ord *schema.Order) error {
 	uuid := ord.OrderUID
 
 	if _, ok := cache.maps[uuid]; ok {
-		return fmt.Errorf("uuid: %s already in cache", uuid)
+		return fmt.Errorf("error while adding order in cache: uuid: %s already in cache", uuid)
 	}
 
 	cache.maps[uuid] = ord
-
 	return nil
 }
 
-func (cache *MapRepositoryCache) GetAllOrders() ([]*schema.Order, error) {
+func (cache *MapRepositoryCache) GetAllOrders() []*schema.Order {
 	ordersArr := make([]*schema.Order, 0)
 
 	for _, v := range cache.maps {
 		ordersArr = append(ordersArr, v)
 	}
-	return ordersArr, nil
+	return ordersArr
 }

@@ -13,12 +13,15 @@ import (
 )
 
 type Config struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	DBName   string
-	SSLMode  string
+	Host                           string
+	Port                           string
+	Username                       string
+	Password                       string
+	DBName                         string
+	SSLMode                        string
+	Listener_Max_Reconnect_Seconds int
+	Listener_Min_Reconnect_Seconds int
+	Listener_Ping_NoEvent_Seconds  int
 }
 
 const (
@@ -28,6 +31,7 @@ const (
 type PostgresDB struct {
 	DB       *sqlx.DB
 	listener *pq.Listener
+	config   Config
 }
 
 func NewPostgresDB(cfg Config) (*PostgresDB, error) {
@@ -47,7 +51,7 @@ func NewPostgresDB(cfg Config) (*PostgresDB, error) {
 
 	listener := createListner(cfg)
 
-	return &PostgresDB{DB: db, listener: listener}, nil
+	return &PostgresDB{DB: db, listener: listener, config: cfg}, nil
 
 }
 
@@ -56,8 +60,8 @@ func createListner(config Config) *pq.Listener {
 		config.Username, config.Password, config.Host,
 		config.Port, config.DBName)
 
-	minRecInterval := 10 * time.Second
-	maxRecInterval := time.Minute
+	minRecInterval := time.Duration(config.Listener_Min_Reconnect_Seconds) * time.Second
+	maxRecInterval := time.Duration(config.Listener_Max_Reconnect_Seconds) * time.Second
 
 	listenerEventCallback := func(ev pq.ListenerEventType, err error) {
 		if err != nil {
@@ -69,10 +73,16 @@ func createListner(config Config) *pq.Listener {
 
 }
 
-func (postgresDB *PostgresDB) RunListenerDeamon(channel string, f func([]byte)) {
+func (postgresDB *PostgresDB) Close() {
+	if postgresDB.listener != nil {
+		postgresDB.listener.Close()
+	}
+}
+
+func (postgresDB *PostgresDB) RunListenerDeamon(channel string, f func([]byte)) error {
 
 	if err := postgresDB.listener.Listen(channel); err != nil {
-		logrus.Printf(err.Error())
+		return fmt.Errorf("error while start listening to %s channel", channel)
 	}
 
 	go func() {
@@ -80,7 +90,7 @@ func (postgresDB *PostgresDB) RunListenerDeamon(channel string, f func([]byte)) 
 			select {
 			case notification := <-postgresDB.listener.Notify:
 				f([]byte(notification.Extra))
-			case <-time.After(90 * time.Second):
+			case <-time.After(time.Duration(postgresDB.config.Listener_Ping_NoEvent_Seconds) * time.Second):
 				go func() {
 					err := postgresDB.listener.Ping()
 					if err != nil {
@@ -90,36 +100,42 @@ func (postgresDB *PostgresDB) RunListenerDeamon(channel string, f func([]byte)) 
 			}
 		}
 	}()
+
+	return nil
 }
 
 func (postgresDB *PostgresDB) SaveOrderInRepository(ord *schema.Order) error {
 	json, err := json.Marshal(ord)
 
 	if err != nil {
-		logrus.Error("error while marshaling Order to JSON")
+		return fmt.Errorf("error while saving order in repository: cannot marshal Order to JSON")
 	}
 
 	uuid := ord.OrderUID
 
-	isExists, err := postgresDB.CheckExists(ord)
+	isExists, err := postgresDB.CheckOrderExists(ord)
 
 	if err != nil {
 		return err
 	}
 
 	if isExists {
-		return fmt.Errorf("cannot save cause order already in repository")
+		return fmt.Errorf("error while saving order in repository: cannot save cause order already in repository")
 	}
 
 	query := fmt.Sprintf("INSERT INTO %s (uuid, order_data) VALUES ($1,$2)", ordersJsonTable)
 
-	postgresDB.DB.QueryRow(query, uuid, json)
+	_, err = postgresDB.DB.Exec(query, uuid, json)
+
+	if err != nil {
+		return fmt.Errorf("error while saving order in repository: %s", err)
+	}
 
 	return nil
 
 }
 
-func (postgresDB *PostgresDB) CheckExists(ord *schema.Order) (bool, error) {
+func (postgresDB *PostgresDB) CheckOrderExists(ord *schema.Order) (bool, error) {
 
 	orderJSON := schema.OrderJSON{}
 
@@ -135,7 +151,7 @@ func (postgresDB *PostgresDB) CheckExists(ord *schema.Order) (bool, error) {
 		return false, nil
 	}
 
-	return false, fmt.Errorf("error while checking exists: %s", err)
+	return false, fmt.Errorf("error while checking order-exists in database: %s", err)
 }
 
 func (postgresDB *PostgresDB) GetAllOrders() ([]schema.OrderJSON, error) {
@@ -145,7 +161,7 @@ func (postgresDB *PostgresDB) GetAllOrders() ([]schema.OrderJSON, error) {
 	err := postgresDB.DB.Select(&ordersJsonArr, query)
 
 	if err != nil {
-		return nil, fmt.Errorf("error while getting all orders: %s", err.Error())
+		return nil, fmt.Errorf("error while getting all orders from database: %s", err.Error())
 	}
 
 	return ordersJsonArr, nil

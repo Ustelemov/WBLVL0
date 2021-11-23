@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/ustelemov/WBLVL0/TestService/service"
 )
@@ -15,10 +16,19 @@ func NewHandler(s service.Service) *Handler {
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
+	corsConfig := cors.DefaultConfig()
 
-	api := router.Group("/api")
+	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
+	corsConfig.AllowCredentials = true
+
+	corsConfig.AddAllowMethods("OPTIONS", "GET")
+
+	router.Use(cors.New(corsConfig))
+
+	api := router.Group("/orders")
 	{
-		api.GET("/:uuid", h.getOrderByUUID)
+		api.GET("", h.getOrders)
+		api.GET("/order", h.getOrderByUUID)
 	}
 
 	return router

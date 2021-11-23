@@ -21,19 +21,19 @@ func NewOrdersService(repo repository.Repository, cache cache.RepositoryCache) *
 	return &OrdersService{repo: repo, Cache: cache}
 }
 
-func (service *OrdersService) GetOrderByUUID(uuid string) (*schema.Order, error) {
+func (service *OrdersService) GetOrderByUUID(uuid string) *schema.Order {
 	return service.Cache.GetOrderByUUID(uuid)
 }
 
 func (service *OrdersService) SaveOrderInCache(ord *schema.Order) error {
-	return service.Cache.SaveOrderInCache(ord)
+	return service.Cache.SaveOrder(ord)
 }
 
 func (service *OrdersService) SaveOrderInRepository(ord *schema.Order) error {
 	return service.repo.SaveOrderInRepository(ord)
 }
 
-func (service *OrdersService) GetAllOrdersInCache() error {
+func (service *OrdersService) LoadAllOrdersInCache() error {
 	ordersJsonArr, err := service.repo.GetAllOrders()
 
 	if err != nil {
@@ -48,7 +48,7 @@ func (service *OrdersService) GetAllOrdersInCache() error {
 		err := json.Unmarshal(v.JSON, order)
 
 		if err != nil {
-			return fmt.Errorf("cannot unmarshal JSON to Order")
+			return fmt.Errorf("failed on load all orders in cache: cannot unmarshal JSON to Order")
 		}
 		maps[uuid] = order
 
@@ -61,23 +61,26 @@ func (service *OrdersService) GetAllOrdersInCache() error {
 
 func (service *OrdersService) ProccessOrderMessage(msg *event.OrderMessage) {
 
+	logrus.Println("Got new message on proccessing")
+
 	isValid := validateMessage(msg)
 
 	if !isValid {
-		logrus.Errorf("message is not valid as Order")
+		logrus.Errorf("error while proccess order message: message is not valid as Order")
 		return
 	}
 
 	if err := service.SaveOrderInRepository(msg.Order); err != nil {
-		logrus.Errorf("error while proccess order message: %s", err.Error())
+		logrus.Println("error while proccess order message: cannot save order in repository: %s", err.Error())
 		return
 	}
 
 	if err := service.SaveOrderInCache(msg.Order); err != nil {
-		logrus.Errorf("error while proccess order message: %s", err.Error())
+		logrus.Println("error while proccess order message: cannot save order in cache %s", err.Error())
 		return
 	}
-	logrus.Println("message with order-uuid: %s from: %s processed succesful", msg.Order.OrderUID, msg.CreatedAt)
+	logrus.Println("succesful proccesed message: order-uuid- %s from- %s",
+		msg.Order.OrderUID, msg.CreatedAt.Format(time.RFC1123))
 }
 
 func validateMessage(msg *event.OrderMessage) bool {
@@ -87,13 +90,50 @@ func validateMessage(msg *event.OrderMessage) bool {
 	return true
 }
 
-func UpdateCacheOnTringer(data []byte) {
-	orderJSON := schema.OrderJSON{}
+func (orderService *OrdersService) UpdateCacheOnTringer(data []byte) {
 
-	err := json.Unmarshal(data, &orderJSON)
+	order := schema.Order{}
 
-	if err != nil || orderJSON.OrderUID == "" {
-		logrus.Printf("error while unmarshal JSON from database: %s", err.Error())
+	err := json.Unmarshal(data, &order)
+
+	if err != nil {
+		logrus.Printf("error while update cache on update-triger: cannot unmarshal JSON from database: %s", err.Error())
 	}
 
+	orderService.Cache.SaveOrder(&order)
+
+}
+
+func (orderService *OrdersService) GetOrderOutByUUID(uuid string) *schema.OrderOut {
+	order := orderService.GetOrderByUUID(uuid)
+
+	if order == nil {
+		return nil
+	}
+
+	totalPrice := order.Payment.Amount + order.Payment.DeliveryCost
+
+	orderOut := schema.OrderOut{
+		OrderUID:        order.OrderUID,
+		Entry:           order.Entry,
+		TotalPrice:      totalPrice,
+		CustomerID:      order.CustomerID,
+		TrackNumber:     order.TrackNumber,
+		DeliveryService: order.DeliveryService,
+	}
+
+	return &orderOut
+
+}
+
+func (orderService *OrdersService) GetAllUUIDsInCache() *[]string {
+	orders := orderService.Cache.GetAllOrders()
+
+	uuids := make([]string, len(orders))
+
+	for k, v := range orders {
+		uuids[k] = v.OrderUID
+	}
+
+	return &uuids
 }

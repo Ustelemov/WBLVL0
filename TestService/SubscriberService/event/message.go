@@ -3,12 +3,11 @@ package event
 import (
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/ustelemov/WBLVL0/TestService/schema"
 )
 
 type Message interface {
-	Key() string
+	GetCreatedTime() time.Time
 }
 
 type OrderMessage struct {
@@ -16,8 +15,8 @@ type OrderMessage struct {
 	Order     *schema.Order
 }
 
-func (ocm *OrderMessage) Key() string {
-	return viper.GetString("nats_subject")
+func (ocm *OrderMessage) GetCreatedTime() time.Time {
+	return ocm.CreatedAt
 }
 
 func CreateOrderMessage(ord *schema.Order, time time.Time) *OrderMessage {

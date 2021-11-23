@@ -1,6 +1,13 @@
-port: "8000"
-nats_url: "wbx-world-nats-stage.dp.wb.ru, wbx-world-nats-stage.dl.wb.ru"
-nats_subject: "go.test"
+api_port: "8000"
+html_port: "3000"
+
+nats:
+  url: "wbx-world-nats-stage.dp.wb.ru, wbx-world-nats-stage.dl.wb.ru"
+  subject: "go.test"
+  subsc_queue: 'orders_queue'
+  opts:
+    reconnect_wait_sec: 1
+    max_reconnects: 1000
 
 db: 
   host: "develop.wbx-world.vm.prod-3d.cloud.3data"
@@ -8,3 +15,7 @@ db:
   dbname:   "Orders_test"
   username: "ustelemov_maksim"
   sslmode:  "disable"
+  listener:
+    min_reconnect_seconds: 10
+    max_reconnect_seconds: 60
+    ping_noevent_seconds: 90

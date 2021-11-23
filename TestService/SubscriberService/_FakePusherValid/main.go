@@ -42,11 +42,16 @@ func initConfig() error {
 func main() {
 
 	if err := initConfig(); err != nil {
-		logrus.Fatalf("Error while init config: %s", err.Error())
+		logrus.Fatalf("error while init config: %s", err.Error())
 	}
 
-	nes, err := event.NewNatsJsonEventStore(viper.GetString("nats_url"), nil)
-
+	nes, err := event.NewNatsJsonEventStore(event.Config{
+		ConnecUrl:          viper.GetString("nats.url"),
+		Max_reconnects:     viper.GetInt("nats.opts.max_reconnects"),
+		Reconnect_wait_sec: viper.GetInt("nats.opts.reconnect_wait_sec"),
+		Subject:            viper.GetString("nats.subject"),
+		Subsc_queue:        viper.GetString("nats.subsc_queue"),
+	})
 	if err != nil {
 		logrus.Fatalf("error while creating nats-connection: %s", err.Error())
 	}
@@ -64,13 +69,13 @@ func main() {
 
 		message := event.CreateOrderMessage(order, time.Now())
 
-		err = nes.PublishOrder(viper.GetString("nats_subject"), message)
+		err = nes.PublishOrder(message)
 
 		if err != nil {
-			logrus.Fatal("error while publish valid fake message: %s", err)
+			logrus.Fatal(err)
 		}
 
-		fmt.Printf("Added %d valid-message with order-uuid: %s from: %s\n", i, order.OrderUID, message.CreatedAt)
+		fmt.Printf("added %d valid-message with order-uuid: %s from: %s\n", i, order.OrderUID, message.CreatedAt.Format(time.RFC1123))
 		i += 1
 
 		time.Sleep(20 * time.Second)
