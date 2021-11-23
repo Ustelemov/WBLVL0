@@ -98,7 +98,6 @@ func main() {
 
 	go func() {
 		if err := html_server.Run(viper.GetString("html_port"), html_handler); err != nil && err != http.ErrServerClosed {
-			logrus.Println("App started")
 			logrus.Fatalf("error occured while starting html-server: %s", err.Error())
 		}
 	}()
@@ -108,7 +107,6 @@ func main() {
 
 	go func() {
 		if err := api_server.Run(viper.GetString("api_port"), api_handler.InitRoutes()); err != nil && err != http.ErrServerClosed {
-			logrus.Println("App started")
 			logrus.Fatalf("error occured while starting api-server: %s", err.Error())
 		}
 	}()

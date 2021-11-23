@@ -75,7 +75,16 @@ func createListner(config Config) *pq.Listener {
 
 func (postgresDB *PostgresDB) Close() {
 	if postgresDB.listener != nil {
-		postgresDB.listener.Close()
+		err := postgresDB.listener.Close()
+		if err != nil {
+			logrus.Errorf("error while closing listener: %s", err.Error())
+		}
+	}
+	if postgresDB.DB != nil {
+		err := postgresDB.DB.Close()
+		if err != nil {
+			logrus.Errorf("error while closing postgres-DB: %s", err.Error())
+		}
 	}
 }
 

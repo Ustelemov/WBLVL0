@@ -76,7 +76,7 @@ func TestRepository_GetAllOrders(t *testing.T) {
 
 }
 
-func TestRepository_CheckExists(t *testing.T) {
+func TestRepository_CheckOrderExists(t *testing.T) {
 	db, mock, err := sqlxmock.Newx()
 
 	if err != nil {
@@ -122,7 +122,7 @@ func TestRepository_CheckExists(t *testing.T) {
 	for _, testCase := range testTable {
 		t.Run(testCase.name, func(t *testing.T) {
 			testCase.mock(testCase.inputOrder)
-			res, err := testCase.s.CheckExists(testCase.inputOrder)
+			res, err := testCase.s.CheckOrderExists(testCase.inputOrder)
 
 			if testCase.wantErr {
 				assert.Error(t, err)

@@ -36,10 +36,10 @@ func (m *MockOrders) EXPECT() *MockOrdersMockRecorder {
 }
 
 // GetAllUUIDsInCache mocks base method.
-func (m *MockOrders) GetAllUUIDsInCache() *[]string {
+func (m *MockOrders) GetAllUUIDsInCache() []string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllUUIDsInCache")
-	ret0, _ := ret[0].(*[]string)
+	ret0, _ := ret[0].([]string)
 	return ret0
 }
 
@@ -167,10 +167,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // GetAllUUIDsInCache mocks base method.
-func (m *MockService) GetAllUUIDsInCache() *[]string {
+func (m *MockService) GetAllUUIDsInCache() []string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllUUIDsInCache")
-	ret0, _ := ret[0].(*[]string)
+	ret0, _ := ret[0].([]string)
 	return ret0
 }
 

@@ -58,7 +58,7 @@ func setupConnOptions(cfg Config) []nats.Option {
 		logrus.Printf("nats reconnected [%s]", nc.ConnectedUrl())
 	}))
 	opts = append(opts, nats.ClosedHandler(func(nc *nats.Conn) {
-		logrus.Fatal("nats exiting: %v", nc.LastError())
+		logrus.Printf("nats exiting: %s", nc.LastError())
 	}))
 	opts = append(opts, nats.ErrorHandler(func(nc *nats.Conn, sub *nats.Subscription, err error) {
 		logrus.Printf("nats subscribtion get error: %s ", err.Error())
@@ -67,14 +67,18 @@ func setupConnOptions(cfg Config) []nats.Option {
 	return opts
 }
 
-func (nes *NatsEventStorage) Close() {
+func (nes *NatsEventStorage) Close() error {
 	if nes.Conn != nil {
 		nes.Conn.Close()
+	} else {
+		return fmt.Errorf("error while trying to close nil nats-connection")
 	}
 
 	if nes.Subsctiption != nil {
 		nes.Subsctiption.Unsubscribe()
 	}
+
+	return nil
 }
 
 func (nes *NatsEventStorage) PublishOrder(ord *OrderMessage) error {

@@ -14,7 +14,7 @@ func NewMapRepositoryCache() *MapRepositoryCache {
 	return &MapRepositoryCache{maps: make(map[string]*schema.Order)}
 }
 
-func (cache *MapRepositoryCache) ChangeMapRepositoryCache(maps map[string]*schema.Order) {
+func (cache *MapRepositoryCache) ReplaceMap(maps map[string]*schema.Order) {
 	cache.maps = maps
 }
 

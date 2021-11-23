@@ -95,7 +95,7 @@ func TestHandler_getOrders(t *testing.T) {
 		{
 			name: "OK",
 			mockBehavior: func(s *mock_service.MockOrders) {
-				s.EXPECT().GetAllUUIDsInCache().Return(&[]string{"91bf621d-aaf3-4a0e-9048-329720a49b50"})
+				s.EXPECT().GetAllUUIDsInCache().Return([]string{"91bf621d-aaf3-4a0e-9048-329720a49b50"})
 			},
 			expectedStatusCode:  http.StatusOK,
 			expectedRequestBody: `{"91bf621d-aaf3-4a0e-9048-329720a49b50"}`,

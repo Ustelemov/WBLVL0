@@ -54,7 +54,7 @@ func (service *OrdersService) LoadAllOrdersInCache() error {
 
 	}
 
-	service.Cache.ChangeMapRepositoryCache(maps)
+	service.Cache.ReplaceMap(maps)
 
 	return nil
 }
@@ -71,15 +71,15 @@ func (service *OrdersService) ProccessOrderMessage(msg *event.OrderMessage) {
 	}
 
 	if err := service.SaveOrderInRepository(msg.Order); err != nil {
-		logrus.Println("error while proccess order message: cannot save order in repository: %s", err.Error())
+		logrus.Printf("error while proccess order message: cannot save order in repository: %s", err.Error())
 		return
 	}
 
 	if err := service.SaveOrderInCache(msg.Order); err != nil {
-		logrus.Println("error while proccess order message: cannot save order in cache %s", err.Error())
+		logrus.Printf("error while proccess order message: cannot save order in cache %s", err.Error())
 		return
 	}
-	logrus.Println("succesful proccesed message: order-uuid- %s from- %s",
+	logrus.Printf("succesful proccesed message: order-uuid- %s from- %s",
 		msg.Order.OrderUID, msg.CreatedAt.Format(time.RFC1123))
 }
 
@@ -126,7 +126,7 @@ func (orderService *OrdersService) GetOrderOutByUUID(uuid string) *schema.OrderO
 
 }
 
-func (orderService *OrdersService) GetAllUUIDsInCache() *[]string {
+func (orderService *OrdersService) GetAllUUIDsInCache() []string {
 	orders := orderService.Cache.GetAllOrders()
 
 	uuids := make([]string, len(orders))
@@ -135,5 +135,5 @@ func (orderService *OrdersService) GetAllUUIDsInCache() *[]string {
 		uuids[k] = v.OrderUID
 	}
 
-	return &uuids
+	return uuids
 }

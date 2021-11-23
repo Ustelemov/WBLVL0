@@ -15,7 +15,7 @@ type Orders interface {
 	ProccessOrderMessage(*event.OrderMessage)
 	UpdateCacheOnTringer([]byte)
 	GetOrderOutByUUID(string) *schema.OrderOut
-	GetAllUUIDsInCache() *[]string
+	GetAllUUIDsInCache() []string
 }
 
 type Service interface {
