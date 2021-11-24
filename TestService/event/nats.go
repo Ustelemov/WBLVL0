@@ -52,7 +52,7 @@ func setupConnOptions(cfg Config) []nats.Option {
 	opts = append(opts, nats.ReconnectWait(reconnectWait))
 	opts = append(opts, nats.MaxReconnects(cfg.Max_reconnects))
 	opts = append(opts, nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-		logrus.Printf("nats disconnected due to:%s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
+		logrus.Printf("nats disconnected due to: %s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
 	}))
 	opts = append(opts, nats.ReconnectHandler(func(nc *nats.Conn) {
 		logrus.Printf("nats reconnected [%s]", nc.ConnectedUrl())

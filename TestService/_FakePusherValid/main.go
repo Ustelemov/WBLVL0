@@ -60,7 +60,7 @@ func main() {
 
 	i := 1
 
-	for {
+	for i < 1000 {
 		order, err := CreateFakeOrder()
 
 		if err != nil {
@@ -78,7 +78,7 @@ func main() {
 		fmt.Printf("added %d valid-message with order-uuid: %s from: %s\n", i, order.OrderUID, message.CreatedAt.Format(time.RFC1123))
 		i += 1
 
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(20 * time.Second)
 
 	}
 

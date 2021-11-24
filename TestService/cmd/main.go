@@ -7,13 +7,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"TestService/cache"
-
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/ustelemov/WBLVL0/TestService/cache"
 	"github.com/ustelemov/WBLVL0/TestService/event"
 	"github.com/ustelemov/WBLVL0/TestService/handler"
 	"github.com/ustelemov/WBLVL0/TestService/repository"
