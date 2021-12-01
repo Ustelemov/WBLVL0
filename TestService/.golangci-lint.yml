@@ -1,0 +1,48 @@
+run:
+  concurrency: 1
+  timeout: 3m
+  issues-exit-code: 1
+  tests: false
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    check-shadowing: true
+    enable-all: true
+  gofmt:
+    simplify: true
+  gocyclo:
+    min-complexity: 20
+  gocognit:
+    min-complexity: 20
+  goconst:
+    min-len: 3
+    min-occurrences: 2
+  lll:
+    line-length: 200
+    tab-width: 4
+  whitespace:
+    multi-if: true
+    multi-func: false
+
+linters:
+  enable:
+    - gofmt
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - megacheck
+    - structcheck
+    - typecheck
+    - goconst
+    - gocognit
+    - gocyclo
+    - lll
+    - dogsled
+    - whitespace
+  disable-all: true
+  fast: true
+

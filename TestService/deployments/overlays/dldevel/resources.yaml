@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: go-trainee
+  namespace: your-own-namespace
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: go-trainee-image
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "0.05"
+          limits:
+            memory: "80Mi"
+            cpu: "0.1"

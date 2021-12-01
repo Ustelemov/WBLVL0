@@ -18,7 +18,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 	corsConfig := cors.DefaultConfig()
 
-	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
+	corsConfig.AllowOrigins = []string{"http://localhost:3000", "http://10.20.220.35:3000"}
 	corsConfig.AllowCredentials = true
 
 	corsConfig.AddAllowMethods("OPTIONS", "GET")
@@ -30,7 +30,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.GET("", h.getOrders)
 		api.GET("/order", h.getOrderByUUID)
 	}
+	router.GET("/status", h.getStatus)
 
 	return router
-
 }

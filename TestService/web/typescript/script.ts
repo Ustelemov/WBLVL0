@@ -7,15 +7,15 @@ interface OrderOut {
     delivery_service: string;
 }
 
-const getOrderUrl = "http://localhost:8000/orders/order?uuid="
-const getOrdersUrl = "http://localhost:8000/orders"
+const host = document.location.hostname
+const getOrderUrl = `http://${host}:8000/orders/order?uuid=`
+const getOrdersUrl = `http://${host}:8000/orders`
 const uuid_input = document.getElementsByClassName('searchInput')[0] as HTMLInputElement
 const img_404 = document.getElementsByClassName('imgbox')[0] as HTMLElement
 const table = document.getElementsByClassName('tablebox')[0] as HTMLElement
 
 img_404.style.display = "none"
 table.style.display = "none"
-
 
 const order_uid = document.getElementById('order_uid') as HTMLTableCellElement
 const entry = document.getElementById('entry') as HTMLTableCellElement
@@ -55,7 +55,7 @@ function onClick() {
     
     let uuid = getOrderUrl + uuid_input.value
 
-    getOrder(uuid)
+    getOrder<OrderOut>(uuid)
       .then((response:OrderOut) => {
       
         order_uid.innerHTML = response.order_uid
@@ -68,8 +68,6 @@ function onClick() {
 
         img_404.style.display = "none"
         table.style.display = "block"
-
-
       })
       .catch(error => {
         console.log(error)
@@ -82,7 +80,7 @@ function onClickRandom() {
     
   let uuid = getOrdersUrl
 
-  getOrder(uuid)
+  getOrder<string[]>(uuid)
     .then((response:string[]) => {
       img_404.style.display = "none"
       table.style.display = "none"

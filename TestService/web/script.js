@@ -1,5 +1,6 @@
-var getOrderUrl = "http://localhost:8000/orders/order?uuid=";
-var getOrdersUrl = "http://localhost:8000/orders";
+var host = document.location.hostname;
+var getOrderUrl = "http://".concat(host, ":8000/orders/order?uuid=");
+var getOrdersUrl = "http://".concat(host, ":8000/orders");
 var uuid_input = document.getElementsByClassName('searchInput')[0];
 var img_404 = document.getElementsByClassName('imgbox')[0];
 var table = document.getElementsByClassName('tablebox')[0];

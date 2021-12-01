@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  config.json: |-
+    {
+
+    }
+
+kind: ConfigMap
+metadata:
+  name: go-trainee-config
+  namespace: wbx-world

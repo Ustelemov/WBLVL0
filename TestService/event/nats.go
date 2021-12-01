@@ -23,7 +23,6 @@ type Config struct {
 }
 
 func NewNatsJsonEventStore(cfg Config) (*NatsEventStorage, error) {
-
 	opts := setupConnOptions(cfg)
 
 	conn, err := nats.Connect(cfg.ConnecUrl, opts...)
@@ -39,11 +38,9 @@ func NewNatsJsonEventStore(cfg Config) (*NatsEventStorage, error) {
 	}
 
 	return &NatsEventStorage{Conn: econn, config: cfg}, nil
-
 }
 
 func setupConnOptions(cfg Config) []nats.Option {
-
 	opts := []nats.Option{}
 
 	reconnectWait := time.Duration(cfg.Reconnect_wait_sec) * time.Second
@@ -75,7 +72,9 @@ func (nes *NatsEventStorage) Close() error {
 	}
 
 	if nes.Subsctiption != nil {
-		nes.Subsctiption.Unsubscribe()
+		if err := nes.Subsctiption.Unsubscribe(); err != nil {
+			return fmt.Errorf("error while trying to unsubcribe: %s", err.Error())
+		}
 	}
 
 	return nil
@@ -92,7 +91,6 @@ func (nes *NatsEventStorage) PublishOrder(ord *OrderMessage) error {
 }
 
 func (nes *NatsEventStorage) QueueSubscribeOnOrders(f func(*OrderMessage)) (err error) {
-
 	nes.Subsctiption, err = nes.Conn.QueueSubscribe(nes.config.Subject, nes.config.Subsc_queue, func(ord *OrderMessage) {
 		f(ord)
 	})
@@ -107,14 +105,12 @@ func (nes *NatsEventStorage) QueueSubscribeOnOrders(f func(*OrderMessage)) (err 
 }
 
 func (nes *NatsEventStorage) SubscribeOnOrders(f func(*OrderMessage)) (err error) {
-
 	nes.Subsctiption, err = nes.Conn.Subscribe(nes.config.Subject, func(ord *OrderMessage) {
 		f(ord)
 	})
 
 	if err != nil {
 		return fmt.Errorf("error while subscribing: %s", err)
-
 	}
 
 	nes.Conn.Flush()

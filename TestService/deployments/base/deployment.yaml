@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+   name: go-trainee
+   namespace: ustelemov-test
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: go-trainee
+    spec:
+      containers:
+        - name: go-trainee-image
+          image: git.wildberries.ru:4567/oer/go-trainee:265
+          imagePullPolicy: Always
+          volumeMounts:
+          - name: password
+            mountPath: /secrets
+            readOnly: true
+          ports:
+            - containerPort: 8000
+            - containerPort: 3000
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 3
+      imagePullSecrets:
+      - name: gitlab-registry-secret
+      volumes:
+      - name: password
+        secret:
+          secretName: ustelemov-secret

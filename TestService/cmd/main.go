@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"io/ioutil"
+
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -27,7 +29,6 @@ func initConfig() error {
 }
 
 func main() {
-
 	gin.SetMode(gin.ReleaseMode) //disable debug-mode messages
 
 	logrus.SetFormatter(&logrus.JSONFormatter{})
@@ -36,8 +37,16 @@ func main() {
 		logrus.Fatalf("error while init config: %s", err.Error())
 	}
 
-	if err := godotenv.Load("../.env"); err != nil {
-		logrus.Fatalf("error while load .env: %s", err.Error())
+	body, err := ioutil.ReadFile("../secrets/password")
+
+	if err != nil {
+		logrus.Fatalf("error while load DB-password: %s", err.Error())
+	}
+
+	dbPassword, err := base64.StdEncoding.DecodeString(string(body))
+
+	if err != nil {
+		logrus.Fatalf("error while decoding DB password: %s", err.Error())
 	}
 
 	db, err := repository.NewPostgresDB(repository.Config{
@@ -45,7 +54,7 @@ func main() {
 		Port:                           viper.GetString("db.port"),
 		DBName:                         viper.GetString("db.dbname"),
 		Username:                       viper.GetString("db.username"),
-		Password:                       os.Getenv("DB_Password"),
+		Password:                       string(dbPassword),
 		SSLMode:                        viper.GetString("db.sslmode"),
 		Listener_Max_Reconnect_Seconds: viper.GetInt("db.listener.max_reconnect_seconds"),
 		Listener_Min_Reconnect_Seconds: viper.GetInt("db.listener.min_reconnect_seconds"),

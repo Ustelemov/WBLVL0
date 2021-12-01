@@ -53,7 +53,6 @@ func NewPostgresDB(cfg Config) (*PostgresDB, error) {
 	listener := createListner(cfg)
 
 	return &PostgresDB{DB: db, listener: listener, config: cfg, listenerStop: make(chan int)}, nil
-
 }
 
 func createListner(config Config) *pq.Listener {
@@ -71,7 +70,6 @@ func createListner(config Config) *pq.Listener {
 	}
 
 	return pq.NewListener(conString, minRecInterval, maxRecInterval, listenerEventCallback)
-
 }
 
 func (postgresDB *PostgresDB) Close() {
@@ -91,7 +89,6 @@ func (postgresDB *PostgresDB) Close() {
 }
 
 func (postgresDB *PostgresDB) RunListenerDeamon(channel string, f func([]byte)) error {
-
 	if err := postgresDB.listener.Listen(channel); err != nil {
 		return fmt.Errorf("error while start listening to %s channel", channel)
 	}
@@ -146,11 +143,9 @@ func (postgresDB *PostgresDB) SaveOrderInRepository(ord *schema.Order) error {
 	}
 
 	return nil
-
 }
 
 func (postgresDB *PostgresDB) CheckOrderExists(ord *schema.Order) (bool, error) {
-
 	orderJSON := schema.OrderJSON{}
 
 	query := fmt.Sprintf("SELECT * FROM %s WHERE uuid = $1", ordersJsonTable)

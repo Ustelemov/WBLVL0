@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: go-trainee
+  namespace: ustelemov-test
+  labels:
+    name: go-trainee
+spec:
+  ports:
+    - port: 8000
+      name: port800
+      targetPort: 8000
+      protocol: TCP
+    - port: 3000
+      name: port3000
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    run: go-trainee
+  type: ClusterIP

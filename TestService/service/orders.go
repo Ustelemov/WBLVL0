@@ -51,7 +51,6 @@ func (service *OrdersService) LoadAllOrdersInCache() error {
 			return fmt.Errorf("failed on load all orders in cache: cannot unmarshal JSON to Order")
 		}
 		maps[uuid] = order
-
 	}
 
 	service.Cache.ReplaceMap(maps)
@@ -60,7 +59,6 @@ func (service *OrdersService) LoadAllOrdersInCache() error {
 }
 
 func (service *OrdersService) ProccessOrderMessage(msg *event.OrderMessage) {
-
 	logrus.Println("Got new message on proccessing")
 
 	isValid := validateMessage(msg)
@@ -91,7 +89,6 @@ func validateMessage(msg *event.OrderMessage) bool {
 }
 
 func (orderService *OrdersService) UpdateCacheOnTringer(data []byte) {
-
 	order := schema.Order{}
 
 	err := json.Unmarshal(data, &order)
@@ -100,8 +97,9 @@ func (orderService *OrdersService) UpdateCacheOnTringer(data []byte) {
 		logrus.Printf("error while update cache on update-triger: cannot unmarshal JSON from database: %s", err.Error())
 	}
 
-	orderService.Cache.SaveOrder(&order)
-
+	if err := orderService.Cache.SaveOrder(&order); err != nil {
+		logrus.Printf("error while update cache on update triger: cannot save order in cache: %s", err.Error())
+	}
 }
 
 func (orderService *OrdersService) GetOrderOutByUUID(uuid string) *schema.OrderOut {
@@ -123,7 +121,6 @@ func (orderService *OrdersService) GetOrderOutByUUID(uuid string) *schema.OrderO
 	}
 
 	return &orderOut
-
 }
 
 func (orderService *OrdersService) GetAllUUIDsInCache() []string {

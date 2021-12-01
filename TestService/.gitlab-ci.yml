@@ -1,0 +1,138 @@
+image: golang:1.17
+stages:
+  - prepare
+  - style
+  - test
+  - build
+  - docker
+  - release
+variables:
+  DOCKER_DRIVER: vfs
+  CONTAINER_TEST_IMAGE: git.wildberries.ru:4567/$CI_PROJECT_PATH:${CI_BUILD_REF_NAME}
+  CONTAINER_RELEASE_IMAGE: git.wildberries.ru:4567/$CI_PROJECT_PATH
+  DOCKER_HOST: tcp://localhost:2375
+  DOCKER_TLS_CERTDIR: ""
+# STAGE [PREPARE]
+prepare:
+  tags:
+    - linux-docker-executor
+  stage: prepare
+  script:
+    - git config --global url."https://gitlab-ci-token:$CI_BUILD_TOKEN@git.wildberries.ru".insteadOf "https://git.wildberries.ru"
+    - GO111MODULE=on go mod vendor
+  artifacts:
+    when: on_success
+    expire_in: 1 hrs
+    paths:
+      - "*"
+
+# STAGE [STYLE]
+golangci-lint:
+  tags:
+    - linux-docker-executor
+  stage: style
+  image: golangci/golangci-lint:v1.31.0
+  script:
+    - golangci-lint run -c .golangci-lint.yml
+  allow_failure: true
+
+# STAGE [TEST]
+gotest:
+  tags:
+    - linux-docker-executor
+  stage: test
+  script:
+    - export GO_PROJECT_PATH="$GOPATH/src/git.wildberries.ru/$CI_PROJECT_NAMESPACE"
+    - mkdir -p $GO_PROJECT_PATH
+    - ln -s $(pwd) $GO_PROJECT_PATH
+    - export GO_PROJECT_PATH="$GO_PROJECT_PATH/$CI_PROJECT_NAME"
+    - cd $GO_PROJECT_PATH
+    - echo $GO_PROJECT_PATH
+    - go test -race -short -cover ./... -coverprofile cover.out
+    - go tool cover -func cover.out | grep total | awk '{print $3}'
+  dependencies:
+    - prepare
+
+
+# STAGE [BUILD]
+gobuild:
+  tags:
+    - linux-docker-executor
+  stage: build
+  script:
+    - CGO_ENABLED=0 GOOS=linux go build -o cmd/service cmd/main.go
+  artifacts:
+    when: on_success
+    expire_in: 1 hrs
+    paths:
+      - "*"
+
+# STAGE [DOCKER]
+docker_build_dev:
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    GIT_STRATEGY: none
+    DOCKER_HOST: tcp://localhost:2375
+    DOCKER_TLS_CERTDIR: ""
+  when: on_success
+  tags:
+    - linux-docker-executor
+  stage: docker
+  script:
+    - docker info
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN git.wildberries.ru:4567
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:${VERSION}$CI_PIPELINE_IID -f builds/Dockerfile .
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:${VERSION}$CI_PIPELINE_IID
+    - echo $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:${VERSION}$CI_PIPELINE_IID
+  dependencies:
+    - gobuild
+
+# STAGE [DOCKER]
+docker_build_stage:
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    GIT_STRATEGY: none
+    DOCKER_HOST: tcp://localhost:2375
+    DOCKER_TLS_CERTDIR: ""
+  when: on_success
+  tags:
+    - linux-docker-executor
+  stage: docker
+  script:
+    - docker info
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN git.wildberries.ru:4567
+    - docker build --cache-from $CONTAINER_TEST_IMAGE -t $CONTAINER_TEST_IMAGE -f builds/Dockerfile .
+    - docker push $CONTAINER_TEST_IMAGE
+    - echo $CONTAINER_TEST_IMAGE
+  only:
+    - production
+    - tags
+  dependencies:
+    - gobuild
+
+# STAGE [RELEASE]
+docker_release:
+  image: docker:latest
+  variables:
+    GIT_STRATEGY: none
+  services:
+    - docker:dind
+  tags:
+    - linux-docker-executor
+  stage: release
+  when: on_success
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN git.wildberries.ru:4567
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE:$CI_COMMIT_TAG
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE:latest
+    - docker push $CONTAINER_RELEASE_IMAGE
+  dependencies: []
+  only:
+    refs:
+      - tags
+      - master

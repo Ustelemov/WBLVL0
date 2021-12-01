@@ -63,7 +63,6 @@ func TestMapRepositoryCache_GetOrderByUUID(t *testing.T) {
 			assert.Equal(t, reflect.DeepEqual(res, testCase.expectedResult), true)
 		})
 	}
-
 }
 
 func TestMapRepositoryCache_SaveOrder(t *testing.T) {
@@ -106,7 +105,6 @@ func TestMapRepositoryCache_SaveOrder(t *testing.T) {
 
 		})
 	}
-
 }
 
 func TestMapRepositoryCache_GetAllOrders(t *testing.T) {
@@ -141,5 +139,4 @@ func TestMapRepositoryCache_GetAllOrders(t *testing.T) {
 			assert.Equal(t, res, testCase.expectingResult)
 		})
 	}
-
 }
